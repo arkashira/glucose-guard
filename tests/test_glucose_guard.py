@@ -1,47 +1,29 @@
 from glucose_guard import GlucoseGuard, GlucoseReading
 import pytest
 
+def test_train_model():
+    readings = [GlucoseReading(100, 1), GlucoseReading(120, 2), GlucoseReading(110, 3)]
+    guard = GlucoseGuard(readings)
+    guard.train_model()
+    assert guard.model == [100, 120, 110]
+
 def test_predict_trend():
-    readings = [
-        GlucoseReading(100.0, 0),
-        GlucoseReading(120.0, 5),
-        GlucoseReading(140.0, 10)
-    ]
+    readings = [GlucoseReading(100, 1), GlucoseReading(120, 2), GlucoseReading(110, 3)]
     guard = GlucoseGuard(readings)
-    prediction = guard.predict_trend()
-    assert prediction == 4.0
+    guard.train_model()
+    trend, confidence = guard.predict_trend()
+    assert trend == 110
+    assert confidence == 0.8
 
-def test_get_confidence_score():
-    readings = [
-        GlucoseReading(100.0, 0),
-        GlucoseReading(120.0, 5),
-        GlucoseReading(140.0, 10)
-    ]
+def test_get_prediction():
+    readings = [GlucoseReading(100, 1), GlucoseReading(120, 2), GlucoseReading(110, 3)]
     guard = GlucoseGuard(readings)
-    prediction = guard.predict_trend()
-    confidence_score = guard.get_confidence_score(prediction)
-    assert confidence_score == 0.3
+    guard.train_model()
+    prediction = guard.get_prediction()
+    assert prediction["trend"] == 110
+    assert prediction["confidence"] == 0.8
 
-def test_get_5_minute_trend_prediction():
-    readings = [
-        GlucoseReading(100.0, 0),
-        GlucoseReading(120.0, 5),
-        GlucoseReading(140.0, 10)
-    ]
-    guard = GlucoseGuard(readings)
-    prediction, confidence_score = guard.get_5_minute_trend_prediction()
-    assert prediction == 4.0
-    assert confidence_score == 0.3
-
-def test_edge_case_empty_readings():
+def test_model_not_trained():
     guard = GlucoseGuard([])
-    prediction = guard.predict_trend()
-    assert prediction == 0.0
-
-def test_edge_case_single_reading():
-    readings = [
-        GlucoseReading(100.0, 0)
-    ]
-    guard = GlucoseGuard(readings)
-    prediction = guard.predict_trend()
-    assert prediction == 0.0
+    with pytest.raises(ValueError):
+        guard.predict_trend()
