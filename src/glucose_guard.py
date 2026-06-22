@@ -1,33 +1,27 @@
 import json
 from dataclasses import dataclass
 from typing import List
-import random
 
 @dataclass
-class SensorData:
-    glucose_level: float
+class GlucoseReading:
+    value: float
     timestamp: int
 
-class GlucoseGuardSimulator:
-    def __init__(self, min_glucose: float, max_glucose: float, noise_level: float):
-        self.min_glucose = min_glucose
-        self.max_glucose = max_glucose
-        self.noise_level = noise_level
+class GlucoseGuard:
+    def __init__(self, readings: List[GlucoseReading]):
+        self.readings = readings
 
-    def generate_sensor_data(self, num_samples: int) -> List[SensorData]:
-        sensor_data = []
-        for i in range(num_samples):
-            glucose_level = random.uniform(self.min_glucose, self.max_glucose)
-            glucose_level += random.uniform(-self.noise_level, self.noise_level)
-            sensor_data.append(SensorData(glucose_level, i))
-        return sensor_data
+    def predict_trend(self) -> float:
+        # Simple moving average model
+        if len(self.readings) < 2:
+            return 0.0
+        return (self.readings[-1].value - self.readings[-2].value) / (self.readings[-1].timestamp - self.readings[-2].timestamp)
 
-    def customize_data_parameters(self, min_glucose: float, max_glucose: float, noise_level: float):
-        self.min_glucose = min_glucose
-        self.max_glucose = max_glucose
-        self.noise_level = noise_level
+    def get_confidence_score(self, prediction: float) -> float:
+        # Simple confidence score based on the number of readings
+        return min(1.0, len(self.readings) / 10.0)
 
-    def integrate_with_analytics(self, sensor_data: List[SensorData]):
-        # Simulate analytics integration by calculating average glucose level
-        average_glucose = sum(data.glucose_level for data in sensor_data) / len(sensor_data)
-        return average_glucose
+    def get_5_minute_trend_prediction(self) -> (float, float):
+        prediction = self.predict_trend()
+        confidence_score = self.get_confidence_score(prediction)
+        return prediction, confidence_score
