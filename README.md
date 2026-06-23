@@ -1,10 +1,8 @@
 # Glucose Guard
-A wearable device for diabetes patients.
 
-## Features
-- Skin-compatible materials
-- Ergonomic design for daily wear
-- Waterproof and durable
+A simple Python project that simulates a glucose guard system. It updates glucose readings, checks for alerts, and allows users to dismiss or snooze alerts.
 
 ## Usage
-Create a wearable device using the `create_wearable_device` function.
+
+1. Run the tests using `python -m pytest`
+2. Implement the glucose guard system using the `GlucoseGuard` class

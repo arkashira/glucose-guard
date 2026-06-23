@@ -1,24 +1,41 @@
+import json
 from dataclasses import dataclass
-from enum import Enum
-
-class MaterialType(Enum):
-    SKIN_COMPATIBLE = 1
-    NON_SKIN_COMPATIBLE = 2
+from datetime import datetime, timedelta
+import time
 
 @dataclass
-class WearableDevice:
-    material: MaterialType
-    is_waterproof: bool
-    is_ergonomic: bool
+class GlucoseReading:
+    value: float
+    timestamp: datetime
 
-    def is_compatible(self):
-        return self.material == MaterialType.SKIN_COMPATIBLE
+class GlucoseGuard:
+    def __init__(self):
+        self.readings = []
+        self.alert_threshold = 180  # mg/dL
+        self.alert_banner_visible = False
 
-    def is_comfortable(self):
-        return self.is_ergonomic
+    def update_glucose_reading(self, value: float):
+        self.readings.append(GlucoseReading(value, datetime.now()))
+        self.check_for_alert()
 
-    def is_durable(self):
-        return self.is_waterproof
+    def check_for_alert(self):
+        if self.readings and self.readings[-1].value > self.alert_threshold:
+            self.alert_banner_visible = True
+        else:
+            self.alert_banner_visible = False
 
-def create_wearable_device(material: MaterialType, is_waterproof: bool, is_ergonomic: bool) -> WearableDevice:
-    return WearableDevice(material, is_waterproof, is_ergonomic)
+    def dismiss_alert(self):
+        self.alert_banner_visible = False
+
+    def snooze_alert(self):
+        self.alert_banner_visible = False
+        # snooze logic can be added here, e.g., set a timer to re-enable the alert
+
+    def get_live_glucose_value(self):
+        if self.readings:
+            return self.readings[-1].value
+        else:
+            return None
+
+    def get_alert_status(self):
+        return self.alert_banner_visible

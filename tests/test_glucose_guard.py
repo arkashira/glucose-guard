@@ -1,25 +1,40 @@
-from glucose_guard import create_wearable_device, WearableDevice, MaterialType
+from glucose_guard import GlucoseGuard, GlucoseReading
+import pytest
+from datetime import datetime, timedelta
 
-def test_wearable_device_compatibility():
-    device = create_wearable_device(MaterialType.SKIN_COMPATIBLE, True, True)
-    assert device.is_compatible() == True
-    assert device.is_comfortable() == True
-    assert device.is_durable() == True
+def test_update_glucose_reading():
+    guard = GlucoseGuard()
+    guard.update_glucose_reading(150)
+    assert guard.get_live_glucose_value() == 150
 
-def test_wearable_device_incompatibility():
-    device = create_wearable_device(MaterialType.NON_SKIN_COMPATIBLE, True, True)
-    assert device.is_compatible() == False
-    assert device.is_comfortable() == True
-    assert device.is_durable() == True
+def test_check_for_alert():
+    guard = GlucoseGuard()
+    guard.update_glucose_reading(200)
+    assert guard.get_alert_status() == True
 
-def test_wearable_device_non_ergonomic():
-    device = create_wearable_device(MaterialType.SKIN_COMPATIBLE, True, False)
-    assert device.is_compatible() == True
-    assert device.is_comfortable() == False
-    assert device.is_durable() == True
+def test_dismiss_alert():
+    guard = GlucoseGuard()
+    guard.update_glucose_reading(200)
+    guard.dismiss_alert()
+    assert guard.get_alert_status() == False
 
-def test_wearable_device_non_waterproof():
-    device = create_wearable_device(MaterialType.SKIN_COMPATIBLE, False, True)
-    assert device.is_compatible() == True
-    assert device.is_comfortable() == True
-    assert device.is_durable() == False
+def test_snooze_alert():
+    guard = GlucoseGuard()
+    guard.update_glucose_reading(200)
+    guard.snooze_alert()
+    assert guard.get_alert_status() == False
+
+def test_get_live_glucose_value():
+    guard = GlucoseGuard()
+    guard.update_glucose_reading(150)
+    assert guard.get_live_glucose_value() == 150
+
+def test_get_alert_status():
+    guard = GlucoseGuard()
+    guard.update_glucose_reading(200)
+    assert guard.get_alert_status() == True
+
+def test_edge_case_no_readings():
+    guard = GlucoseGuard()
+    assert guard.get_live_glucose_value() is None
+    assert guard.get_alert_status() == False
