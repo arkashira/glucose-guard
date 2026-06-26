@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-import time
+import statistics
 
 @dataclass
 class GlucoseReading:
@@ -9,33 +9,47 @@ class GlucoseReading:
     timestamp: datetime
 
 class GlucoseGuard:
-    def __init__(self):
-        self.readings = []
-        self.alert_threshold = 180  # mg/dL
-        self.alert_banner_visible = False
+    def __init__(self, readings):
+        self.readings = readings
 
-    def update_glucose_reading(self, value: float):
-        self.readings.append(GlucoseReading(value, datetime.now()))
-        self.check_for_alert()
+    def predict_trend(self):
+        values = [reading.value for reading in self.readings]
+        if len(values) < 2:
+            return None
+        trend = statistics.linear_regression(values, [i for i in range(len(values))])
+        return trend
 
-    def check_for_alert(self):
-        if self.readings and self.readings[-1].value > self.alert_threshold:
-            self.alert_banner_visible = True
-        else:
-            self.alert_banner_visible = False
-
-    def dismiss_alert(self):
-        self.alert_banner_visible = False
-
-    def snooze_alert(self):
-        self.alert_banner_visible = False
-        # snooze logic can be added here, e.g., set a timer to re-enable the alert
-
-    def get_live_glucose_value(self):
-        if self.readings:
-            return self.readings[-1].value
+    def check_hypo_hyper(self, trend):
+        if trend is None:
+            return None
+        predicted_value = trend[0] * (len(self.readings) + 1) + trend[1]
+        if predicted_value < 70:
+            return "hypo"
+        elif predicted_value > 180:
+            return "hyper"
         else:
             return None
 
-    def get_alert_status(self):
-        return self.alert_banner_visible
+    def send_alert(self, event):
+        if event:
+            print(f"Sending alert: {event}")
+            return True
+        return False
+
+    def log_alert(self, event):
+        if event:
+            print(f"Logging alert: {event}")
+            return True
+        return False
+
+    def acknowledge_alert(self, event):
+        if event:
+            print(f"Acknowledging alert: {event}")
+            return True
+        return False
+
+    def dismiss_alert(self, event):
+        if event:
+            print(f"Dismissing alert: {event}")
+            return True
+        return False

@@ -1,40 +1,56 @@
 from glucose_guard import GlucoseGuard, GlucoseReading
-import pytest
 from datetime import datetime, timedelta
+import pytest
 
-def test_update_glucose_reading():
-    guard = GlucoseGuard()
-    guard.update_glucose_reading(150)
-    assert guard.get_live_glucose_value() == 150
+@pytest.fixture
+def readings():
+    return [
+        GlucoseReading(100, datetime.now() - timedelta(minutes=10)),
+        GlucoseReading(120, datetime.now() - timedelta(minutes=5)),
+        GlucoseReading(140, datetime.now())
+    ]
 
-def test_check_for_alert():
-    guard = GlucoseGuard()
-    guard.update_glucose_reading(200)
-    assert guard.get_alert_status() == True
+def test_predict_trend(readings):
+    guard = GlucoseGuard(readings)
+    trend = guard.predict_trend()
+    assert trend is not None
 
-def test_dismiss_alert():
-    guard = GlucoseGuard()
-    guard.update_glucose_reading(200)
-    guard.dismiss_alert()
-    assert guard.get_alert_status() == False
+def test_check_hypo_hyper(readings):
+    guard = GlucoseGuard(readings)
+    trend = guard.predict_trend()
+    event = guard.check_hypo_hyper(trend)
+    assert event is not None
 
-def test_snooze_alert():
-    guard = GlucoseGuard()
-    guard.update_glucose_reading(200)
-    guard.snooze_alert()
-    assert guard.get_alert_status() == False
+def test_send_alert(readings):
+    guard = GlucoseGuard(readings)
+    trend = guard.predict_trend()
+    event = guard.check_hypo_hyper(trend)
+    assert guard.send_alert(event)
 
-def test_get_live_glucose_value():
-    guard = GlucoseGuard()
-    guard.update_glucose_reading(150)
-    assert guard.get_live_glucose_value() == 150
+def test_log_alert(readings):
+    guard = GlucoseGuard(readings)
+    trend = guard.predict_trend()
+    event = guard.check_hypo_hyper(trend)
+    assert guard.log_alert(event)
 
-def test_get_alert_status():
-    guard = GlucoseGuard()
-    guard.update_glucose_reading(200)
-    assert guard.get_alert_status() == True
+def test_acknowledge_alert(readings):
+    guard = GlucoseGuard(readings)
+    trend = guard.predict_trend()
+    event = guard.check_hypo_hyper(trend)
+    assert guard.acknowledge_alert(event)
+
+def test_dismiss_alert(readings):
+    guard = GlucoseGuard(readings)
+    trend = guard.predict_trend()
+    event = guard.check_hypo_hyper(trend)
+    assert guard.dismiss_alert(event)
 
 def test_edge_case_no_readings():
-    guard = GlucoseGuard()
-    assert guard.get_live_glucose_value() is None
-    assert guard.get_alert_status() == False
+    guard = GlucoseGuard([])
+    trend = guard.predict_trend()
+    assert trend is None
+
+def test_edge_case_single_reading():
+    guard = GlucoseGuard([GlucoseReading(100, datetime.now())])
+    trend = guard.predict_trend()
+    assert trend is None

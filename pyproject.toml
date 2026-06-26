@@ -5,8 +5,7 @@ build-backend = "poetry.masonry.api"
 [tool.poetry]
 name = "glucose-guard"
 version = "1.0.0"
-description = ""
-authors = ["Your Name"]
+description = "AI Trend Alerts for Glucose Levels"
 
 [tool.poetry.dependencies]
 python = "^3.8"
